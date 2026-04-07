@@ -3,34 +3,39 @@
 
 import SwiftUI
 import UIKit
-import AudioToolbox
 
 /// A horizontally scrolling wheel picker with snapping behavior.
-/// - Displays values from `startPoint` to `endPoint`
-/// - Each small tick represents `+1`
-/// - Each major tick represents `+5`
+/// - Uses UIScrollView internally for smooth physics and snapping.
+/// - Each small tick = +1
+/// - Each major tick = +5
 @available(iOS 17.0, *)
 public struct HorizontalWheelPicker: View {
     
-    /// Current scroll offset (driven by UIScrollView)
+    /// Current horizontal scroll offset (driven by UIScrollView)
     @State private var offset: CGFloat = 0
     
-    /// Selected value returned to parent
-    @Binding private var returnValue: Int
+    /// Binding to expose selected value to parent
+    @Binding private var value: Int
     
     /// Range configuration
     private let startPoint: Int
     private let endPoint: Int
     
-    public init(returnValue: Binding<Int>, startPoint: Int, endPoint: Int) {
-        self._returnValue = returnValue
+    /// Styling configuration (modifiable via modifiers)
+    public var style = HorizontalWheelPickerStyle()
+    
+    public init(value: Binding<Int>,
+                startPoint: Int,
+                endPoint: Int) {
+        
+        self._value = value
         self.startPoint = startPoint
         self.endPoint = endPoint
     }
     
     public var body: some View {
         
-        /// GeometryReader ensures dynamic width instead of relying on UIScreen
+        /// GeometryReader provides dynamic width instead of relying on UIScreen
         GeometryReader { geo in
             
             let width = geo.size.width
@@ -38,90 +43,68 @@ public struct HorizontalWheelPicker: View {
             /// Number of major ticks (each represents 5 units)
             let pickerCount = Int(ceil(Double(endPoint - startPoint) / 5.0))
             
-            VStack {
+            ZStack {
                 
+                /// Scrollable ruler
                 CustomSlider(
                     offSet: $offset,
                     pickerCount: pickerCount,
                     visibleWidth: width
                 ) {
                     
-                    /// Main horizontal ruler
                     HStack(spacing: 0) {
                         
-                        ForEach(1...pickerCount, id: \.self) { index in
+                        /// Generate ticks
+                        ForEach(0...pickerCount, id: \.self) { index in
                             
-                            /// Major tick (every 5 units)
+                            /// Value for current major tick
+                            let tickValue = startPoint + (index * 5)
+                            
+                            /// Major tick
                             VStack {
                                 Rectangle()
-                                    .fill(.white)
+                                    .fill(style.majorTickColor)
                                     .frame(width: 1, height: 30)
                                 
                                 /// Label for major tick
-                                Text("\((startPoint - 5) + (index * 5))")
+                                Text("\(tickValue)")
                                     .font(.system(size: 10, weight: .light))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(style.textColor)
                             }
                             .frame(width: 20)
                             
-                            /// Subticks (4 small ticks between each major tick)
-                            ForEach(1...4, id: \.self) { _ in
-                                Rectangle()
-                                    .fill(.white)
-                                    .frame(width: 1, height: 15)
-                                    .frame(width: 20)
+                            /// Add minor ticks between major ticks (except last)
+                            if index != pickerCount {
+                                ForEach(1...4, id: \.self) { _ in
+                                    Rectangle()
+                                        .fill(style.minorTickColor)
+                                        .frame(width: 1, height: 15)
+                                        .frame(width: 20)
+                                }
                             }
                         }
-                        
-                        /// Final tick (end value)
-                        VStack(spacing: 10) {
-                            Rectangle()
-                                .fill(.white)
-                                .frame(width: 1, height: 30)
-                            
-                            Text("\(endPoint)")
-                                .font(.system(size: 10, weight: .light))
-                                .foregroundStyle(.white)
-                        }
-                        .frame(width: 20)
                     }
-                    
-                    /// Center alignment:
-                    /// - Moves first tick to center
-                    /// - Adds trailing padding so last tick can reach center
-//                    .offset(x: (width - 30) / 2)
-                    .padding(.trailing, width - 30)
                 }
                 .frame(height: 50)
                 
-                /// Center indicator line
-                .overlay {
-                    Rectangle()
-                        .fill(Color.accentColor)
-                        .frame(width: 3, height: 50)
-                        .offset(x: 0.4, y: -9)
-                        .padding(.bottom)
-                }
+                /// Fixed center indicator (represents selected value)
+                Rectangle()
+                    .fill(style.indicatorColor)
+                    .frame(width: 3, height: 50)
             }
         }
         .frame(height: 50)
-        
-        /// Updates selected value whenever scroll offset changes
-        .onChange(of: offset) {
-            getWeight()
+        /// Update value whenever scroll offset changes
+        .onChange(of: offset) { _, _ in
+            updateValue()
         }
     }
     
-    /// Converts scroll offset into selected value
-    private func getWeight() {
-        
-        /// Each 20pt = 1 unit
+    /// Converts scroll offset → actual value
+    /// - Each 20pt corresponds to 1 unit
+    private func updateValue() {
         let progress = offset / 20
-        
-        /// Calculate final value
-        let totalWeight = startPoint + Int(progress)
-        
-        returnValue = totalWeight
+        value = startPoint + Int(progress)
     }
 }
 
