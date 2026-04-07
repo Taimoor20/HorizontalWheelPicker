@@ -16,7 +16,7 @@ In Xcode:
 
 File → Add Packages → Enter:
 
-https://github.com/your-username/HorizontalWheelPicker
+https://github.com/Taimoor20/HorizontalWheelPicker
 
 ## Usage
 
