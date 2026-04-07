@@ -102,7 +102,7 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
             
             /// Adjust offset so:
             /// 0 = startPoint centered
-            parent.offSet = scrollView.contentOffset.x + parent.inset
+            parent.offSet = scrollView.contentOffset.x
         }
         
         /// Snap to nearest tick (20pt grid)
@@ -111,17 +111,13 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
             let step: CGFloat = 20
             
             /// Adjusted offset for snapping
-            let adjusted = scrollView.contentOffset.x + parent.inset
             
-            let value = round(adjusted / step)
+            let value = round(scrollView.contentOffset.x / step)
             
             /// Convert back to raw offset
-            let newOffset = (value * step) - parent.inset
+            let newOffset = value * step
             
-            scrollView.setContentOffset(
-                CGPoint(x: newOffset, y: 0),
-                animated: false
-            )
+            scrollView.setContentOffset(CGPoint(x: newOffset, y: 0), animated: false)
             
             /// Light haptic feedback
             UIImpactFeedbackGenerator(style: .light).impactOccurred()

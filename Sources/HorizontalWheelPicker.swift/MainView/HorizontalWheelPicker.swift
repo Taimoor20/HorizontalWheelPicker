@@ -11,6 +11,8 @@ import UIKit
 @available(iOS 17.0, *)
 public struct HorizontalWheelPicker: View {
     
+    @State private var currentWidth: CGFloat = 0
+    
     /// Current horizontal scroll offset (driven by UIScrollView)
     @State private var offset: CGFloat = 0
     
@@ -92,6 +94,12 @@ public struct HorizontalWheelPicker: View {
                     .fill(style.indicatorColor)
                     .frame(width: 3, height: 50)
             }
+            .onAppear {
+                currentWidth = geo.size.width
+            }
+            .onChange(of: geo.size.width) {
+                currentWidth = $0
+            }
         }
         .frame(height: 50)
         /// Update value whenever scroll offset changes
@@ -103,7 +111,12 @@ public struct HorizontalWheelPicker: View {
     /// Converts scroll offset → actual value
     /// - Each 20pt corresponds to 1 unit
     private func updateValue() {
-        let progress = offset / 20
+        
+        let inset = (currentWidth - 30) / 2
+        
+        let adjustedOffset = offset + inset
+        let progress = adjustedOffset / 20
+        
         value = startPoint + Int(progress)
     }
 }
