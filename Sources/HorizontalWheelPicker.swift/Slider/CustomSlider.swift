@@ -8,24 +8,23 @@
 import SwiftUI
 import UIKit
 
-/// A UIKit-backed horizontal scroll container.
-/// Responsible for:
+/// UIKit-backed scroll container
+/// Handles:
 /// - Hosting SwiftUI content
-/// - Managing scroll offset
+/// - Scroll offset tracking
 /// - Snapping to nearest tick
+/// - Correct initial centering
 struct CustomSlider<Content: View>: UIViewRepresentable {
     
-    /// SwiftUI content rendered inside UIScrollView
     private let content: Content
-    
-    /// Number of major ticks
     private let pickerCount: Int
-    
-    /// Visible width (provided by GeometryReader)
     private let visibleWidth: CGFloat
     
-    /// Binding to propagate scroll offset to SwiftUI
+    /// Binding to send adjusted offset back to SwiftUI
     @Binding private var offSet: CGFloat
+    
+    /// Cached inset (used for alignment + offset correction)
+    private let inset: CGFloat
     
     init(
         offSet: Binding<CGFloat>,
@@ -37,6 +36,9 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
         self._offSet = offSet
         self.pickerCount = pickerCount
         self.visibleWidth = visibleWidth
+        
+        /// Calculate inset so center indicator aligns with ticks
+        self.inset = (visibleWidth - 30) / 2
     }
     
     func makeCoordinator() -> Coordinator {
@@ -47,23 +49,21 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
         
         let scrollView = UIScrollView()
         
-        /// Disable bounce for picker-like feel
         scrollView.bounces = false
-        
-        /// Hide default scroll indicator
         scrollView.showsHorizontalScrollIndicator = false
-        
         scrollView.delegate = context.coordinator
         
-        /// Use contentInset to center first and last items
-        /// This avoids fake offsets in SwiftUI
-        let inset = (visibleWidth - 30) / 2
+        /// Apply horizontal inset to center content
         scrollView.contentInset = UIEdgeInsets(
             top: 0,
             left: inset,
             bottom: 0,
             right: inset
         )
+        
+        /// 🔥 Critical Fix:
+        /// Start contentOffset at -inset so first value is centered
+        scrollView.contentOffset = CGPoint(x: -inset, y: 0)
         
         /// Host SwiftUI content inside UIKit
         let hostedView = UIHostingController(rootView: content).view!
@@ -77,12 +77,10 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
     
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
         
-        /// Retrieve hosted SwiftUI view
         guard let hostedView = scrollView.viewWithTag(999) else { return }
         
-        /// Calculate total content width
-        /// Each unit = 20pt
-        /// Each major tick = 5 units
+        /// Total width:
+        /// (major ticks + subticks) * spacing
         let contentWidth = CGFloat(pickerCount * 5) * 20
         
         hostedView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: 50)
@@ -100,9 +98,11 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
         }
         
         /// Called continuously while scrolling
-        /// Updates SwiftUI state
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            parent.offSet = scrollView.contentOffset.x
+            
+            /// Adjust offset so:
+            /// 0 = startPoint centered
+            parent.offSet = scrollView.contentOffset.x + parent.inset
         }
         
         /// Snap to nearest tick (20pt grid)
@@ -110,30 +110,31 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
             
             let step: CGFloat = 20
             
-            /// Calculate nearest tick index
-            let value = round(scrollView.contentOffset.x / step)
-            let newOffset = value * step
+            /// Adjusted offset for snapping
+            let adjusted = scrollView.contentOffset.x + parent.inset
+            
+            let value = round(adjusted / step)
+            
+            /// Convert back to raw offset
+            let newOffset = (value * step) - parent.inset
             
             scrollView.setContentOffset(
                 CGPoint(x: newOffset, y: 0),
                 animated: false
             )
             
-            /// Provide light haptic feedback
+            /// Light haptic feedback
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
         
-        /// Called when deceleration ends
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             snap(scrollView)
         }
         
-        /// Called when dragging ends
         func scrollViewDidEndDragging(
             _ scrollView: UIScrollView,
             willDecelerate decelerate: Bool
         ) {
-            /// If no deceleration, snap manually
             if !decelerate {
                 snap(scrollView)
             }

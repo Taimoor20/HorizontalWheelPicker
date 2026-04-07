@@ -95,7 +95,7 @@ public struct HorizontalWheelPicker: View {
         }
         .frame(height: 50)
         /// Update value whenever scroll offset changes
-        .onChange(of: offset) { _, _ in
+        .onChange(of: offset) {
             updateValue()
         }
     }
