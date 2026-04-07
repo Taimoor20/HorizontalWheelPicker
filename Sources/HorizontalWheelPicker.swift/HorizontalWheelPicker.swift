@@ -89,7 +89,7 @@ public struct HorizontalWheelPicker: View {
                     /// Center alignment:
                     /// - Moves first tick to center
                     /// - Adds trailing padding so last tick can reach center
-                    .offset(x: (width - 30) / 2)
+//                    .offset(x: (width - 30) / 2)
                     .padding(.trailing, width - 30)
                 }
                 .frame(height: 50)
