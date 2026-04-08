@@ -38,4 +38,22 @@ public extension HorizontalWheelPicker {
         copy.style.textColor = color
         return copy
     }
+    
+    func majorTickFrame(width: Double, height: Double) -> Self {
+        var copy = self
+        copy.style.majorTickFrame = CGSize(width: width, height: height)
+        return copy
+    }
+    
+    func minorTickFrame(width: Double, height: Double) -> Self {
+        var copy = self
+        copy.style.minorTickFrame = CGSize(width: width, height: height)
+        return copy
+    }
+    
+    func spacing(_ value: CGFloat) -> Self {
+        var copy = self
+        copy.style.spacing = value
+        return copy
+    }
 }
