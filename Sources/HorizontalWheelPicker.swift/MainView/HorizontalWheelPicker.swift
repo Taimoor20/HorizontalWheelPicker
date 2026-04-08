@@ -8,7 +8,7 @@ import UIKit
 /// - Each small tick = +1 unit (20pt)
 /// - Each major tick = +5 units
 /// - Uses offset tracking to compute selected value
-@available(iOS 17.0, *)
+@available(iOS 15.0, *)
 public struct HorizontalWheelPicker: View {
     
     /// Current scroll offset from UIScrollView
@@ -24,7 +24,7 @@ public struct HorizontalWheelPicker: View {
     /// Styling configuration
     public var style = WheelPickerStyle()
     
-    init(returnValue: Binding<Int>, startPoint: Int, endPoint: Int) {
+    public init(returnValue: Binding<Int>, startPoint: Int, endPoint: Int) {
         self._returnValue = returnValue
         self.startPoint = startPoint
         self.endPoint = endPoint
@@ -107,7 +107,7 @@ public struct HorizontalWheelPicker: View {
         }
         .frame(height: style.pickerHeight) // ✅ constraint GeometryReader
         /// Update value when offset changes
-        .onChange(of: offset) {
+        .onChange(of: offset) { _ in
             updateValue()
         }
     }
