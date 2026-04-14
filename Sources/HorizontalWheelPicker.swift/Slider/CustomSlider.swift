@@ -16,28 +16,34 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
     private var addHapticFeedback: Bool = true
     @Binding private var offSet: CGFloat
     
+    // Add these to track initial positioning
+    private var initialValue: Int
+    private var startPoint: Int
+    
     init(offSet: Binding<CGFloat>,
          pickerCount: Int,
          addHapticFeedback: Bool = true,
+         initialValue: Int,
+         startPoint: Int,
          @ViewBuilder content: @escaping () -> Content) {
         
         self.content = content()
         self._offSet = offSet
         self.pickerCount = pickerCount
         self.addHapticFeedback = addHapticFeedback
+        self.initialValue = initialValue
+        self.startPoint = startPoint
     }
     
     func makeCoordinator() -> Coordinator {
-        return CustomSlider.Coordinator(parent: self)
+        return CustomSlider.Coordinator(parent: self, addHapticFeedback: addHapticFeedback)
     }
     
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         let swiftUIView = UIHostingController(rootView: content).view!
         
-        // Total width calculation: (Major Ticks + Subticks) * width per tick + screen padding
         let width = CGFloat((pickerCount * 5) * 20) + (getScreenWidth())
-        
         swiftUIView.frame = CGRect(x: 0, y: 0, width: width, height: 50)
         swiftUIView.backgroundColor = .clear
         
@@ -46,6 +52,13 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
         scrollView.bounces = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.delegate = context.coordinator
+        
+        // Calculate how many ticks away from the start the initial value is
+        let diff = initialValue - startPoint
+        let initialX = CGFloat(diff * 20)
+        
+        // Set the offset immediately without animation
+        scrollView.contentOffset = CGPoint(x: initialX, y: 0)
         
         return scrollView
     }

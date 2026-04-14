@@ -43,7 +43,7 @@ public struct HorizontalWheelPicker: View {
             // Logic: 1 major tick group represents 5 units
             let pickerCount = (endPoint - startPoint) / 5
             
-            CustomSlider(offSet: $offset, pickerCount: pickerCount, addHapticFeedback: addHapticFeedback) {
+            CustomSlider(offSet: $offset, pickerCount: pickerCount, addHapticFeedback: addHapticFeedback, initialValue: returnValue, startPoint: startPoint) {
                 
                 HStack(spacing: 0) {
                     
