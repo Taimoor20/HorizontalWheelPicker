@@ -8,52 +8,47 @@
 import Foundation
 import SwiftUI
 
-@available(iOS 17.0, *)
-public extension HorizontalWheelPicker {
+@available(iOS 15.0, *)
+// MARK: - Modifiers
+extension HorizontalWheelPicker {
     
-    /// Change color of major ticks
-    func majorTickColor(_ color: Color) -> Self {
+    /// Sets the color of the major ticks.
+    /// - Parameter color: The color to apply.
+    public func majorTickColor(_ color: Color) -> Self {
         var copy = self
         copy.style.majorTickColor = color
         return copy
     }
     
-    /// Change color of minor ticks
-    func minorTickColor(_ color: Color) -> Self {
+    /// Sets the color of the minor ticks.
+    /// - Parameter color: The color to apply.
+    public func minorTickColor(_ color: Color) -> Self {
         var copy = self
         copy.style.minorTickColor = color
         return copy
     }
     
-    /// Change center indicator color
-    func indicatorColor(_ color: Color) -> Self {
+    /// Sets the color of the center indicator needle.
+    /// - Parameter color: The color to apply.
+    public func indicatorColor(_ color: Color) -> Self {
         var copy = self
         copy.style.indicatorColor = color
         return copy
     }
     
-    /// Change label text color
-    func textColor(_ color: Color) -> Self {
+    /// Sets the text color for the picker labels.
+    /// - Parameter color: The color to apply.
+    public func textColor(_ color: Color) -> Self {
         var copy = self
         copy.style.textColor = color
         return copy
     }
     
-    func majorTickFrame(width: Double, height: Double) -> Self {
+    /// Sets the font for the picker labels.
+    /// - Parameter font: The font to apply.
+    public func textFont(_ font: Font) -> Self {
         var copy = self
-        copy.style.majorTickFrame = CGSize(width: width, height: height)
-        return copy
-    }
-    
-    func minorTickFrame(width: Double, height: Double) -> Self {
-        var copy = self
-        copy.style.minorTickFrame = CGSize(width: width, height: height)
-        return copy
-    }
-    
-    func spacing(_ value: CGFloat) -> Self {
-        var copy = self
-        copy.style.spacing = value
+        copy.style.textFont = font
         return copy
     }
 }

@@ -7,18 +7,18 @@
 
 import SwiftUI
 
+/// A configuration object to customize the visual appearance of the WheelPicker.
 public struct WheelPickerStyle {
-    
-    public var majorTickColor: Color = .white
-    public var minorTickColor: Color = .white.opacity(0.7)
-    public var indicatorColor: Color = .blue
-    public var textColor: Color = .white
+    /// Color for the primary/long ticks (multiples of 5).
+    public var majorTickColor: Color = .black
+    /// Color for the secondary/short ticks.
+    public var minorTickColor: Color = .black
+    /// Color for the static center selection needle.
+    public var indicatorColor: Color = .accentColor
+    /// Color for the numerical labels.
+    public var textColor: Color = .black
+    /// Font style for the numerical labels.
     public var textFont: Font = .system(size: 11, weight: .light)
-    public var majorTickFrame: CGSize = CGSize(width: 1, height: 30)
-    public var minorTickFrame: CGSize = CGSize(width: 1, height: 15)
-    public var indicatorFrame: CGSize = CGSize(width: 3, height: 50)
-    public var spacing: CGFloat = 20
-    public var pickerHeight: CGFloat = 70
     
     public init() {}
 }

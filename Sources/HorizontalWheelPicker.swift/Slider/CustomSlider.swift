@@ -8,60 +8,38 @@
 import SwiftUI
 import UIKit
 
-/// UIKit-backed horizontal scroll container
-/// Responsible for:
-/// - Hosting SwiftUI content
-/// - Tracking scroll offset
-/// - Snapping to nearest tick
-/// - Providing native-like wheel feedback
+/// A wrapper for UIScrollView to handle precise horizontal scrolling and snapping.
 struct CustomSlider<Content: View>: UIViewRepresentable {
     
-    private let content: Content
-    private let pickerCount: Int
-    private let containerWidth: CGFloat
-    
-    /// Binding to propagate scroll offset
+    private var content: Content
+    private var pickerCount: Int
     @Binding private var offSet: CGFloat
     
-    init(
-        offSet: Binding<CGFloat>,
-        pickerCount: Int,
-        containerWidth: CGFloat,
-        @ViewBuilder content: @escaping () -> Content
-    ) {
+    init(offSet: Binding<CGFloat>,
+         pickerCount: Int,
+         @ViewBuilder content: @escaping () -> Content) {
         self.content = content()
         self._offSet = offSet
         self.pickerCount = pickerCount
-        self.containerWidth = containerWidth
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
+        return CustomSlider.Coordinator(parent: self)
     }
     
     func makeUIView(context: Context) -> UIScrollView {
-        
         let scrollView = UIScrollView()
+        let swiftUIView = UIHostingController(rootView: content).view!
         
-        /// Embed SwiftUI view
-        let hostedView = UIHostingController(rootView: content).view!
+        // Total width calculation: (Major Ticks + Subticks) * width per tick + screen padding
+        let width = CGFloat((pickerCount * 5) * 20) + (getScreenWidth())
         
-        /// Total width:
-        /// (total ticks * spacing) + extra width for centering last item
-        let width = CGFloat((pickerCount * 5) * 20) + (containerWidth - 30)
+        swiftUIView.frame = CGRect(x: 0, y: 0, width: width, height: 50)
+        swiftUIView.backgroundColor = .clear
         
-        hostedView.frame = CGRect(x: 0, y: 0, width: width, height: 50)
-        hostedView.backgroundColor = .clear
-        
-        scrollView.contentSize = hostedView.frame.size
-        scrollView.addSubview(hostedView)
-        
-        /// Disable bounce for picker feel
+        scrollView.contentSize = swiftUIView.frame.size
+        scrollView.addSubview(swiftUIView)
         scrollView.bounces = false
-        
-        /// Faster deceleration for native feel
-        scrollView.decelerationRate = .fast
-        
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.delegate = context.coordinator
         
@@ -70,72 +48,42 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
     
     func updateUIView(_ uiView: UIScrollView, context: Context) {}
     
-    // MARK: - Coordinator
-    
     class Coordinator: NSObject, UIScrollViewDelegate {
-        
-        private let parent: CustomSlider
-        
-        /// Native wheel feedback generator
-        private let feedbackGenerator = UISelectionFeedbackGenerator()
-        
-        /// Track last step to avoid duplicate triggers
-        private var lastStep: CGFloat = .zero
+        private var parent: CustomSlider
         
         init(parent: CustomSlider) {
             self.parent = parent
-            feedbackGenerator.prepare()
         }
         
-        /// Track scrolling + trigger haptics
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            
-            let offset = scrollView.contentOffset.x
-            parent.offSet = offset
-            
-            let step: CGFloat = 20
-            
-            /// Current step index
-            let currentStep = (offset / step).rounded()
-            
-            /// Trigger feedback only when step changes
-            if currentStep != lastStep {
-                lastStep = currentStep
-                
-                feedbackGenerator.selectionChanged()
-                feedbackGenerator.prepare()
-            }
+            parent.offSet = scrollView.contentOffset.x
         }
         
-        /// Snap after deceleration
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-            snap(scrollView)
+            snapToTick(scrollView)
         }
         
-        /// Snap when dragging stops
-        func scrollViewDidEndDragging(
-            _ scrollView: UIScrollView,
-            willDecelerate decelerate: Bool
-        ) {
+        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
             if !decelerate {
-                snap(scrollView)
+                snapToTick(scrollView)
             }
         }
         
-        /// Snap to nearest tick (20pt)
-        private func snap(_ scrollView: UIScrollView) {
+        /// Helper to ensure the picker stops exactly on a tick.
+        private func snapToTick(_ scrollView: UIScrollView) {
+            let offSet = scrollView.contentOffset.x
+            let value = (offSet / 20).rounded(.toNearestOrAwayFromZero)
             
-            let step: CGFloat = 20
-            
-            let value = (scrollView.contentOffset.x / step)
-                .rounded(.toNearestOrAwayFromZero)
-            
-            let targetOffset = value * step
-            
-            scrollView.setContentOffset(
-                CGPoint(x: targetOffset, y: 0),
-                animated: false
-            )
+            scrollView.setContentOffset(CGPoint(x: value * 20, y: 0), animated: true)
         }
     }
+}
+
+/// Helper to fetch screen width for alignment and calculations.
+/// In a production SDK, consider using GeometryReader for better responsiveness to split-screen/iPad modes.
+@MainActor func getScreenWidth() -> CGFloat {
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+        return windowScene.screen.bounds.width
+    }
+    return 375 // Default fallback
 }
