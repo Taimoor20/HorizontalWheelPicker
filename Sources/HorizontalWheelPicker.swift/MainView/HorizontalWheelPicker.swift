@@ -18,27 +18,39 @@ public struct HorizontalWheelPicker: View {
     
     private var startPoint: Int
     private var endPoint: Int
+    private var addHapticFeedback: Bool = true
     
     /// Initializes a new WheelPicker.
     /// - Parameters:
     ///   - returnValue: Binding to the selected integer value.
     ///   - startPoint: The minimum value of the picker.
     ///   - endPoint: The maximum value of the picker.
-    public init(returnValue: Binding<Int>, startPoint: Int, endPoint: Int) {
+    ///   - hapticFeedback: Little vibration at the end.
+    public init(returnValue: Binding<Int>,
+                startPoint: Int,
+                endPoint: Int,
+                addHapticFeedback: Bool = true) {
+        
         self._returnValue = returnValue
         self.startPoint = startPoint
         self.endPoint = endPoint
+        self.addHapticFeedback = addHapticFeedback
     }
     
     public var body: some View {
+        
         VStack {
             // Logic: 1 major tick group represents 5 units
             let pickerCount = (endPoint - startPoint) / 5
             
-            CustomSlider(offSet: $offset, pickerCount: pickerCount) {
+            CustomSlider(offSet: $offset, pickerCount: pickerCount, addHapticFeedback: addHapticFeedback) {
+                
                 HStack(spacing: 0) {
+                    
                     ForEach(1...pickerCount, id: \.self) { index in
+                        
                         VStack {
+                            
                             Rectangle()
                                 .fill(style.majorTickColor)
                                 .frame(width: 2, height: 30)
@@ -53,6 +65,7 @@ public struct HorizontalWheelPicker: View {
                         
                         // Sub-ticks between major ticks
                         ForEach(1...4, id: \.self) { _ in
+                            
                             Rectangle()
                                 .fill(style.minorTickColor)
                                 .frame(width: 1, height: 15)
@@ -62,6 +75,7 @@ public struct HorizontalWheelPicker: View {
                     
                     // Final tick (endpoint)
                     VStack(spacing: 10) {
+                        
                         Rectangle()
                             .fill(style.majorTickColor)
                             .frame(width: 2, height: 30)

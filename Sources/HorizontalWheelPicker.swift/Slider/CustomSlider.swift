@@ -13,14 +13,18 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
     
     private var content: Content
     private var pickerCount: Int
+    private var addHapticFeedback: Bool = true
     @Binding private var offSet: CGFloat
     
     init(offSet: Binding<CGFloat>,
          pickerCount: Int,
+         addHapticFeedback: Bool = true,
          @ViewBuilder content: @escaping () -> Content) {
+        
         self.content = content()
         self._offSet = offSet
         self.pickerCount = pickerCount
+        self.addHapticFeedback = addHapticFeedback
     }
     
     func makeCoordinator() -> Coordinator {
@@ -50,9 +54,11 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
     
     class Coordinator: NSObject, UIScrollViewDelegate {
         private var parent: CustomSlider
+        private var addHapticFeedback: Bool = true
         
-        init(parent: CustomSlider) {
+        init(parent: CustomSlider, addHapticFeedback: Bool = true) {
             self.parent = parent
+            self.addHapticFeedback = addHapticFeedback
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -75,6 +81,12 @@ struct CustomSlider<Content: View>: UIViewRepresentable {
             let value = (offSet / 20).rounded(.toNearestOrAwayFromZero)
             
             scrollView.setContentOffset(CGPoint(x: value * 20, y: 0), animated: true)
+            
+            if addHapticFeedback {
+                
+                // Light vibration
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
         }
     }
 }
