@@ -62,3 +62,5 @@ WheelPicker(returnValue: $selectedValue, startPoint: 0, endPoint: 100)
     .textColor(.black)          // Color of the numerical labels
     .textFont(.system(size: 11, weight: .light)) // The font used for the labels
 ```
+---
+*If you find this library helpful, please consider leaving a ⭐ on GitHub!*    
