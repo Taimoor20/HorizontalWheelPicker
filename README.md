@@ -3,7 +3,7 @@
 A customizable, lightweight horizontal scrollable picker for SwiftUI that mimics the feel of a physical ruler or wheel. Perfect for weight, height, or any numerical input.
 
 <div align="center">
-  <video src="[https://github.com/YourUsername/YourRepo/path/to/your/video.mp4](https://github.com/Taimoor20/WheelPickerGif/blob/main/Gif_file.gif)" width="300" />
+  <video src="https://github.com/Taimoor20/WheelPickerGif/blob/main/Gif_file.gif" width="300" />
 </div> 
 
 ## Features
